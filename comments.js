@@ -1,32 +1,37 @@
+// Create web server
 const express = require('express');
+const bodyParser = require('body-parser');
+const axios = require('axios');
+
 const app = express();
+app.use(bodyParser.json());
 
-// Define routes for comments
-app.get('/comments', (req, res) => {
-    // Logic to retrieve comments from database
-    // ...
-    res.send('Get all comments');
+// Create event bus client
+const events = [];
+
+// Create endpoint to receive events from event bus
+app.post('/events', (req, res) => {
+  const event = req.body;
+  events.push(event);
+
+  // Send event to moderation service
+  axios.post('http://localhost:4003/events', event);
+
+  // Send event to query service
+  axios.post('http://localhost:4004/events', event);
+
+  // Send event to moderation service
+  axios.post('http://localhost:4005/events', event);
+
+  res.send({ status: 'OK' });
 });
 
-app.post('/comments', (req, res) => {
-    // Logic to create a new comment in the database
-    // ...
-    res.send('Create a new comment');
+// Create endpoint to query all events
+app.get('/events', (req, res) => {
+  res.send(events);
 });
 
-app.put('/comments/:id', (req, res) => {
-    // Logic to update a comment in the database
-    // ...
-    res.send('Update a comment');
+// Start server
+app.listen(4002, () => {
+  console.log('Listening on 4002');
 });
-
-app.delete('/comments/:id', (req, res) => {
-    // Logic to delete a comment from the database
-    // ...
-    res.send('Delete a comment');
-});
-
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});
-
